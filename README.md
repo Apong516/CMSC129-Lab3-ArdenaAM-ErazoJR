@@ -189,6 +189,9 @@ php artisan migrate:fresh
 ---
 
 ## SCREENSHOTS 🖼️
+<img width="1919" height="921" alt="DashboardPage" src="https://github.com/user-attachments/assets/9c6cfb17-6fb9-476c-9542-882600e9c6c8" />
+<img width="1919" height="910" alt="NewEntryPage" src="https://github.com/user-attachments/assets/c4ac39f8-ca3d-4bd0-803b-0905d92c9144" />
+<img width="1919" height="897" alt="ProfilePage" src="https://github.com/user-attachments/assets/0ee92bc4-3b0b-483e-acc6-517580ffaca7" />
 
 ---
 
