@@ -28,6 +28,8 @@ class JournalController extends Controller
 
         $search = $request->input('search');
         $mood = $request->input('mood');
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
 
         $journals = JournalEntry::where('user_id', $activeUserId)
             ->when($search, function ($query, $search) {
@@ -39,6 +41,12 @@ class JournalController extends Controller
             })
             ->when($mood, function ($query, $mood) {
                 $query->where('mood', $mood);
+            })
+            ->when($fromDate, function ($query, $fromDate) {
+                $query->whereDate('date', '>=', $fromDate);
+            })
+            ->when($toDate, function ($query, $toDate) {
+                $query->whereDate('date', '<=', $toDate);
             })
             ->orderBy('date', 'desc')
             ->get();
@@ -74,6 +82,7 @@ class JournalController extends Controller
             'content' => 'required',
             'date' => 'required|date',
             'mood' => 'required|string',
+            'location' => 'required|string|max:255',
         ]);
 
         JournalEntry::create([
@@ -82,6 +91,7 @@ class JournalController extends Controller
             'content' => $request->content,
             'date' => $request->date,
             'mood' => $request->mood,
+            'location' => $request->location,
         ]);
 
         return redirect()->route('journals.index')->with('success', 'Journal added!');
@@ -101,6 +111,7 @@ class JournalController extends Controller
             'content' => 'required',
             'date' => 'required|date',
             'mood' => 'required|string',
+            'location' => 'reuqired|string|max:255',
         ]);
 
         $journal->update($request->all());

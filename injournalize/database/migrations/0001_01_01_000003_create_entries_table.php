@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->date('date');
+            $table->string('location');
             $table->string('mood');
             $table->softDeletes(); // adds deleted_at column
             $table->timestamps();
