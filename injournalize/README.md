@@ -1,58 +1,207 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# inJOURNALize 📖
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+This is your own personal web diary! inJOURNALize serves as both a journal and mood tracker guaranteed to work right beneath your fingertips. The first version uses MERN for its tech stack and has now been "migrated" to Laravel. Made to provide the best user experience by emphasizing simplicity and minimalism.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This app is created to experiment with Laravel. By extension, it is to practice the use of MVC architecture and database relationships while using PostgreSQL as a database.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## TABLE OF CONTENTS 📋
 
-## Learning Laravel
+- [Features](#features-🛠️)
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Installation & Setup](#installation--setup)
+- [Database Setup](#setting-up-database)
+- [Migration Commands](#migration-commands)
+- [Screenshots](#screenshots)
+- [Usage](#usage)
+- [Contributing](#contributing)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## FEATURES 🛠️
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **CRUD Implementation**  
+  The application uses simple CRUD (Create, Read, Update, Delete) operations to make journal entries easy to use.
 
-## Agentic Development
+- **Archive System (Soft/Hard Delete Implementation)**  
+  When a user deletes their journal entry, the journal first gets sent to the "Archive" where they can either send it back to the list of journal entries or remove it permanently.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+- **Profile System**  
+  This version of inJOURNALize lets you switch between different profiles to accommodate their needs. Users can also add a password to keep entries private.
 
-```bash
-composer require laravel/boost --dev
+- **Mood Tracker**  
+  inJOURNALize keeps track of your mood for each journal entry you make. You can track whether you were sad, happy, or in between.
 
-php artisan boost:install
+- **Search and Filter System**  
+  Users can search for past entries and filter by mood or date range.
+
+---
+
+## PREREQUISITES 📦
+
+- PHP 8.3+ (core programming language)
+- Laravel 13 (PHP framework)
+- PostgreSQL (database)
+- Composer (dependency manager)
+- Git (version control)
+
+**Optional but recommended:**  
+- npm (for frontend asset compilation)  
+- Laravel Pint (for code formatting)
+
+---
+
+## PROJECT STRUCTURE 🗂️
+
+```text
+├─ app/                       # Main application folder
+│  ├─ Http/                   # HTTP layer
+│  │  └─ Controllers/         # All controllers
+│  │     ├─ Controller.php        # Base controller
+│  │     ├─ JournalController.php # Handles journal CRUD logic
+│  │     └─ UserController.php    # Handles user/profile logic
+│  └─ Models/                  # Eloquent models
+│     ├─ JournalEntry.php         # Journal entry model
+│     └─ User.php                 # User/profile model
+├─ bootstrap/                  # Bootstrapping Laravel
+├─ config/                     # Configuration files
+├─ database/                   # Database related files
+│  ├─ migrations/              # Migration files
+│  │  ├─ 0001_01_01_000000_create_users_table.php
+│  │  ├─ 0001_01_01_000001_create_cache_table.php
+│  │  ├─ 0001_01_01_000002_create_jobs_table.php
+│  │  ├─ 0001_01_01_000003_create_entries_table.php
+│  │  ├─ 2026_03_28_050300_add_deleted_at_to_users_table.php
+│  │  └─ 2026_03_30_044125_create_sessions_table.php
+├─ node_modules/               # Node.js packages (if using npm)
+├─ public/                     # Publicly accessible folder (CSS, JS, images)
+├─ resources/                  # Resources like views, CSS, JS
+│  ├─ css/                     # Stylesheets
+│  ├─ js/                      # JS files
+│  └─ views/                   # Blade templates
+│     ├─ journals/             # Journal-related views
+│     │  ├─ create.blade.php
+│     │  ├─ edit.blade.php
+│     │  └─ index.blade.php
+│     ├─ layouts/              # Layout templates
+│     │  └─ app.blade.php
+│     ├─ users/                # User-related views
+│     │  ├─ create.blade.php
+│     │  ├─ edit.blade.php
+│     │  └─ index.blade.php
+│     └─ welcome.blade.php     # Homepage
+├─ routes/                     # Routes configuration
+│  ├─ console.php              # Commands run in console
+│  └─ web.php                  # Web routes
+└─ vendor/                     # Composer dependencies
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+This structure follows **Laravel’s MVC architecture**:
 
-## Contributing
+- `app/Models` contains all Eloquent models
+- `app/Http/Controllers` contains controller logic
+- `resources/views` contains Blade templates (views)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## INSTALLATION & SETUP ⚙️
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. **Clone the repository:**
+```
+git clone "https://github.com/elirvrrii/CMSC129-Lab2-Arde-aAM-ErazoJR" 
+cd inJOURNALize
+```
 
-## Security Vulnerabilities
+2. **Install PHP dependencies:**
+```
+composer install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. **Install Node dependencies (optional for assets):**
+```
+npm install  
+npm run dev
+```
 
-## License
+4. **Copy `.env.example` to `.env`:**
+```
+cp .env.example .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. **Generate application key:**
+```
+php artisan key:generate
+```
+
+6. **Update `.env` with database credentials** (see Database Setup section)
+
+---
+
+## SETTING UP DATABASE 🗄️
+
+1. **Create PostgreSQL database:**
+```
+CREATE DATABASE journal_db;
+```
+
+2. **Create PostgreSQL user (if needed):**
+```
+CREATE USER journal_user WITH PASSWORD 'your_password';  
+GRANT ALL PRIVILEGES ON DATABASE journal_db TO journal_user;
+```
+
+3. **Update `.env` with credentials:**
+```
+DB_CONNECTION=pgsql  
+DB_HOST=127.0.0.1  
+DB_PORT=5432  
+DB_DATABASE=journal_db  
+DB_USERNAME=journal_user  
+DB_PASSWORD=your_password
+
+```
+
+---
+
+## MIGRATION COMMANDS 🔄
+
+```
+# Run all migrations  
+php artisan migrate  
+  
+# Undo last batch of migrations  
+php artisan migrate:rollback  
+  
+# Undo all migrations  
+php artisan migrate:reset  
+  
+# Reset all migrations then run again  
+php artisan migrate:refresh  
+  
+# Drop all tables and run migrations from scratch  
+php artisan migrate:fresh
+```
+
+---
+
+## SCREENSHOTS 🖼️
+
+---
+
+## USAGE ▶️
+
+1. Select or create a user profile
+2. Add a new journal entry with title, content, mood, date, and location
+3. Track your mood over time using the filter system
+4. Edit, delete, or archive entries as needed
+5. Restore entries from archive or permanently delete them
+
+---
+
+## CONTRIBUTING 🤝
+
+Contributions are welcome! Please fork the repository and create a pull request.
