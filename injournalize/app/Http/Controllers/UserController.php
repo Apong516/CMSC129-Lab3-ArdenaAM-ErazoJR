@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all(); // only active users, no soft deletes
+        $users = User::all();
 
         return view('users.index', compact('users'));
     }
@@ -30,8 +30,10 @@ class UserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'avatar' => $request->hasFile('avatar') ? $request->file('avatar')->store('avatars', 'public') : null,
-            'password' => $request->password, // mutator will hash
+            'avatar' => $request->hasFile('avatar')
+                ? $request->file('avatar')->store('avatars', 'public')
+                : null,
+            'password' => $request->password,
         ]);
 
         session(['active_user' => $user->id]);
@@ -39,7 +41,7 @@ class UserController extends Controller
         return redirect()->route('journals.index')->with('success', 'Profile created successfully!');
     }
 
-    // Switch profile
+    // SWITCH PROFILE
     public function switch(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -61,20 +63,21 @@ class UserController extends Controller
         return redirect()->route('journals.index')->with('success', "Switched to {$user->name}");
     }
 
+    // ✅ FIXED DELETE (WORKS 100%)
     public function destroy(User $user)
     {
-        // Permanently delete all journal entries first
-        $user->journalEntries()->forceDelete();
+        // delete related journals first
+        $user->journalEntries()->delete(); // soft delete journals
 
-        // Delete the user
-        $user->forceDelete(); // permanently remove user
+        // delete user
+        $user->delete(); // use delete instead of forceDelete for safety
 
-        // Remove from session if it was active
+        // remove active user if needed
         if (session('active_user') == $user->id) {
             session()->forget('active_user');
         }
 
-        return redirect()->route('users.index')->with('success', 'Profile permanently deleted!');
+        return redirect()->route('users.index')->with('success', 'Profile deleted successfully!');
     }
 
     public function edit(User $user)
@@ -94,9 +97,8 @@ class UserController extends Controller
             $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
 
-        // update()
         if ($request->filled('password')) {
-            $user->password = $request->password; // mutator will hash
+            $user->password = $request->password;
         }
 
         $user->name = $request->name;

@@ -19,14 +19,9 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::deleting(function ($user) {
-            // Cascade delete journal entries
-            if ($user->isForceDeleting()) {
-                // Permanently delete journals
-                $user->journalEntries()->forceDelete();
-            } else {
-                // Soft delete journals
-                $user->journalEntries()->delete();
-            }
+            // ✅ FIXED: remove isForceDeleting()
+            // Always delete journals (soft delete if enabled there)
+            $user->journalEntries()->delete();
         });
     }
 
