@@ -41,7 +41,7 @@ This app is created to experiment with Laravel. By extension, it is to practice 
   Users can search for past entries and filter by mood or date range.
 
 - **AI Journal Assistant (Chatbot)**  
-  A floating AI-powered chatbot widget embedded on the main page. Supports two modes: **Ask** (read-only inquiry) and **Manage** (natural language CRUD). Uses Google Gemini.
+  A floating AI-powered chatbot widget embedded on the main page. Supports two modes: **Ask** (read-only inquiry) and **Manage** (natural language CRUD). Uses Groq.
 
 ---
 
@@ -76,7 +76,7 @@ This app is created to experiment with Laravel. By extension, it is to practice 
 │     ├─ JournalEntry.php         # Journal entry model
 │     └─ User.php                 # User/profile model
 │  └─ Services/                # Business logic services
-│     ├─ AIService.php             # Gemini API wrapper
+│     ├─ AIService.php             # Groq API wrapper
 │     ├─ PromptService.php         # Prompt builder (inquiry + CRUD prompts)
 │     ├─ JournalContextService.php # Resolves DB context for AI queries
 │     ├─ JournalCrudService.php    # Handles AI-triggered CRUD operations
@@ -136,7 +136,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-6. **Update `.env` with database credentials and Gemini API key** (see sections below)
+6. **Update `.env` with database credentials and Groq API key** (see sections below)
 
 ---
 
@@ -191,41 +191,34 @@ php artisan migrate:fresh
 
 ## AI CHATBOT 🤖
 
-inJOURNALize includes a floating AI assistant powered by **Google Gemini**. It is embedded as a widget on the main dashboard and supports two modes: **Ask** for read-only inquiry and **Manage** for natural language CRUD operations.
+inJOURNALize includes a floating AI assistant powered by **Groq**. It is embedded as a widget on the main dashboard and supports two modes: **Ask** for read-only inquiry and **Manage** for natural language CRUD operations.
 
 ### AI Service Used
 
 | Detail | Value |
 |--------|-------|
-| **Provider** | Google Gemini |
-| **Model** | `gemini-1.5-flash` |
-| **PHP Package** | `google-gemini-php/laravel` |
-| **Access** | Free tier available at [aistudio.google.com](https://aistudio.google.com/app/apikey) |
+| **Provider** | Groq |
+| **Model** | `llama-3.3-70b-versatile` |
+| **PHP Package** | `openai-php/client` (Groq is OpenAI-compatible) |
+| **Access** | Free tier available at [console.groq.com](https://console.groq.com/keys) |
 
 ---
 
-
 ### Setup & API Key
 
-1. Go to [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-2. Sign in with your Google account
+1. Go to [https://console.groq.com/keys](https://console.groq.com/keys)
+2. Sign in with your account
 3. Click **"Create API key"** and copy it
-4. Install google-gemini-php/laravel through composer
+4. Install the OpenAI-compatible PHP client via Composer (Groq uses an OpenAI-compatible API)
 
-```
-composer require google-gemini-php/laravel
-```
-
-5. Execute install command
-
-```
-php artisan gemini:install
+```bash
+composer require openai-php/client
 ```
 
-> In your .env file blank environment variables wil be added.
+5. Add the following variables to your `.env` file:
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 > ⚠️ Never commit your `.env` file or expose your API key publicly.
@@ -237,8 +230,8 @@ GEMINI_API_KEY=your_gemini_api_key_here
 The following environment variables are required for the AI chatbot to function:
 
 ```env
-# Required — Google Gemini AI
-GEMINI_API_KEY=your_gemini_api_key_here
+# Required — Groq AI
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 ---
@@ -252,7 +245,7 @@ User → ChatBotController → JournalContextService / JournalCrudService → DB
                                         ↓
                                    JSON string
                                         ↓
-                           PromptService → AIService → Gemini API
+                           PromptService → AIService → Groq API
                                         ↓
                               text response → User
 ```
@@ -318,7 +311,7 @@ Use these prompts to create or modify entries through conversation:
 | File | Responsibility |
 |------|----------------|
 | `ChatBotController.php` | Routes Ask/Manage requests, returns responses |
-| `AIService.php` | Wraps the Gemini API call |
+| `AIService.php` | Wraps the Groq API call |
 | `PromptService.php` | Builds system + user prompts for each mode |
 | `JournalContextService.php` | Fetches and formats DB entries as AI context |
 | `JournalCrudService.php` | Executes AI-triggered create/update/delete |
