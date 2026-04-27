@@ -41,7 +41,7 @@ This app is created to experiment with Laravel. By extension, it is to practice 
   Users can search for past entries and filter by mood or date range.
 
 - **AI Journal Assistant (Chatbot)**  
-  A floating AI-powered chatbot widget embedded on the main page. Supports two modes: **Ask** (read-only inquiry) and **Manage** (natural language CRUD). Powered by Google Gemini. See the [full AI section](#ai-chatbot-🤖) for details.
+  A floating AI-powered chatbot widget embedded on the main page. Supports two modes: **Ask** (read-only inquiry) and **Manage** (natural language CRUD). Uses Google Gemini.
 
 ---
 
@@ -52,7 +52,6 @@ This app is created to experiment with Laravel. By extension, it is to practice 
 - PostgreSQL (database)
 - Composer (dependency manager)
 - Git (version control)
-- Google Gemini API Key (for AI chatbot)
 
 **Optional but recommended:**  
 - npm (for frontend asset compilation)  
@@ -88,7 +87,7 @@ This app is created to experiment with Laravel. By extension, it is to practice 
 │  ├─ migrations/              # Migration files
 │  └─ seeders/                 # Database seeders
 │     ├─ DatabaseSeeder.php
-│     └─ JournalEntrySeeder.php   # 15 realistic sample journal entries
+│     └─ JournalEntrySeeder.php   # 15 sample journal entries
 ├─ public/                     # Publicly accessible folder
 │  └─ js/
 │     └─ chatbot.js               # Chatbot frontend logic
@@ -198,19 +197,32 @@ inJOURNALize includes a floating AI assistant powered by **Google Gemini**. It i
 
 | Detail | Value |
 |--------|-------|
-| **Provider** | Google Gemini (via Google AI Studio) |
+| **Provider** | Google Gemini |
 | **Model** | `gemini-1.5-flash` |
 | **PHP Package** | `google-gemini-php/laravel` |
 | **Access** | Free tier available at [aistudio.google.com](https://aistudio.google.com/app/apikey) |
 
 ---
 
+
 ### Setup & API Key
 
 1. Go to [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
 2. Sign in with your Google account
 3. Click **"Create API key"** and copy it
-4. Open your `.env` file and add the key:
+4. Install google-gemini-php/laravel through composer
+
+```
+composer require google-gemini-php/laravel
+```
+
+5. Execute install command
+
+```
+php artisan gemini:install
+```
+
+> In your .env file blank environment variables wil be added.
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -227,12 +239,7 @@ The following environment variables are required for the AI chatbot to function:
 ```env
 # Required — Google Gemini AI
 GEMINI_API_KEY=your_gemini_api_key_here
-
-# Optional — tune AI behavior (defaults shown)
-GEMINI_MODEL=gemini-1.5-flash
 ```
-
-All other variables (database, app key, etc.) are covered in the [Installation](#installation--setup) and [Database Setup](#setting-up-database) sections.
 
 ---
 
