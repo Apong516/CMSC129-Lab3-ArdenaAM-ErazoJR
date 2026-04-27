@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "google-gemini-php/laravel": "*",
+        "guzzlehttp/guzzle": "*",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0"
     },
