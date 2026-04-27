@@ -1,58 +1,47 @@
 <?php
+
 namespace App\Services;
 
 class PromptService
 {
     public function chatPrompt($message, $context = null, $history = [])
     {
-        $contextBlock = $context ? "\nAPI Data:\n$context\n" : "";
-
-        $historyBlock = "";
-        if (!empty($history)) {
-            $historyBlock = "\nConversation History:\n";
-            foreach ($history as $entry) {
-                $role = $entry['role'] === 'user' ? 'User' : 'AI';
-                $historyBlock .= "$role: {$entry['content']}\n";
-            }
-            $historyBlock .= "\n";
-        }
-
         return "
-You are a helpful AI assistant for a journal app called InJournalize.
-You help users query and understand their journal entries.
-Always refer to previous conversation context when answering follow-up questions.
-If the user uses pronouns like 'it', 'that', 'those', refer back to conversation history.
-Be conversational and friendly.
-Do NOT perform any create, update, or delete operations — you are in read-only inquiry mode.
+You are a STRICT journal data assistant.
 
-$historyBlock
-$contextBlock
+You MUST answer ONLY using the provided data.
+You DO NOT use conversation history.
+Each question is independent.
 
-Current user message: $message
+RULES:
+- Do NOT say 'you already asked'
+- Do NOT reference previous messages
+- Do NOT explain anything
+- Do NOT add extra words
+
+TASKS:
+- If asked 'how many journals' → return ONLY a number
+- If asked 'titles' → return titles as plain text (one per line)
+- If asked 'dates' → return dates as plain text (one per line)
+- If asked 'mood/location' → extract directly from data
+- If no data found → return EXACTLY: No data available.
+
+FORMAT:
+- Plain text only
+- No JSON
+- No markdown
+
+User question:
+$message
 ";
     }
 
     public function crudPrompt($message, $context = null, $history = [])
     {
-        $contextBlock = $context ? "\nAPI Data:\n$context\n" : "";
-
-        $historyBlock = "";
-        if (!empty($history)) {
-            $historyBlock = "\nConversation History:\n";
-            foreach ($history as $entry) {
-                $role = $entry['role'] === 'user' ? 'User' : 'AI';
-                $historyBlock .= "$role: {$entry['content']}\n";
-            }
-            $historyBlock .= "\n";
-        }
-
         return "
 You are a journal management assistant for InJournalize.
-You help users create, update, and delete journal entries.
-Always refer to previous conversation context.
 
 When the user wants to perform an operation, respond with ONLY a raw JSON object and nothing else.
-No explanation, no markdown, no extra text — ONLY the JSON.
 
 CREATE:
 {\"operation\": \"CREATE\", \"title\": \"title here\", \"content\": \"content here\"}
@@ -63,20 +52,19 @@ UPDATE:
 DELETE:
 {\"operation\": \"DELETE\", \"id\": 1}
 
-NEED MORE INFO (if user didn't provide enough details):
-{\"operation\": \"NEED_INFO\", \"message\": \"What title and content would you like for the new entry?\"}
+NEED MORE INFO:
+{\"operation\": \"NEED_INFO\", \"message\": \"Ask for missing details.\"}
 
-Rules:
-- Output ONLY raw JSON, no markdown backticks, no explanation
-- For CREATE, always ask for title and content if not provided
-- For UPDATE/DELETE, always ask for the entry ID if not provided
-- If the user is just chatting and not requesting CRUD, respond with:
-{\"operation\": \"NONE\", \"message\": \"your conversational response here\"}
+NONE (just chatting):
+{\"operation\": \"NONE\", \"message\": \"your response\"}
 
-$historyBlock
-$contextBlock
+RULES:
+- ONLY JSON (no text, no markdown)
+- No explanations
+- No extra output
 
-Current user message: $message
+User message:
+$message
 ";
     }
 }

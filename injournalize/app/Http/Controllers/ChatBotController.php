@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -18,16 +19,47 @@ class ChatBotController extends Controller
     ) {
         try {
             $message = $request->input('message');
-            $history = array_slice($request->input('history', []), -10);
 
-            $contextData = $context->resolve($message);
-            $fullPrompt = $prompt->chatPrompt($message, $contextData, $history);
-            $response = $ai->chat($fullPrompt);
+            // 🔥 FIX: use AIService directly (no PromptService conflict)
+            $response = $ai->chat($message);
 
-            return response()->json(['reply' => $response]);
+            // 🔥 CLEAN RESPONSE
+            $clean = trim($response);
 
-        } catch (\Gemini\Exceptions\ErrorException $e) {
-            return response()->json(['reply' => 'Rate limit reached, please wait a moment and try again.']);
+            // remove markdown if AI wraps JSON
+            $clean = preg_replace('/```json|```/', '', $clean);
+
+            $decoded = json_decode($clean, true);
+
+            if (is_array($decoded)) {
+
+                // COUNT
+                if (isset($decoded['total_entries'])) {
+                    $clean = (string) $decoded['total_entries'];
+                }
+
+                // TITLES
+                elseif (isset($decoded['titles']) && is_array($decoded['titles'])) {
+                    $clean = implode("\n", array_map(function ($item) {
+                        return is_array($item) ? implode(", ", $item) : (string) $item;
+                    }, $decoded['titles']));
+                }
+
+                // DATES
+                elseif (isset($decoded['dates']) && is_array($decoded['dates'])) {
+                    $clean = implode("\n", array_map(function ($item) {
+                        return is_array($item) ? implode(", ", $item) : (string) $item;
+                    }, $decoded['dates']));
+                }
+
+                // FALLBACK
+                else {
+                    $clean = json_encode($decoded, JSON_PRETTY_PRINT);
+                }
+            }
+
+            return response()->json(['reply' => $clean]);
+
         } catch (\Exception $e) {
             return response()->json(['reply' => 'Error: ' . $e->getMessage()]);
         }
@@ -46,7 +78,7 @@ class ChatBotController extends Controller
             $history = array_slice($request->input('history', []), -10);
             $pendingOperation = $request->input('pending_operation');
 
-            // User confirmed a pending destructive operation
+            // User confirmed pending action
             if ($pendingOperation) {
                 return $this->executePendingOperation($pendingOperation, $crud);
             }
@@ -55,7 +87,6 @@ class ChatBotController extends Controller
             $fullPrompt = $prompt->crudPrompt($message, $contextData, $history);
             $response = $ai->chat($fullPrompt);
 
-            // Clean response — strip markdown backticks if any
             $trimmed = trim(preg_replace('/```json|```/', '', $response));
 
             if (str_starts_with($trimmed, '{')) {
@@ -64,17 +95,10 @@ class ChatBotController extends Controller
                 if ($decoded && isset($decoded['operation'])) {
                     $operation = $decoded['operation'];
 
-                    // Just chatting in CRUD mode
-                    if ($operation === 'NONE') {
+                    if ($operation === 'NONE' || $operation === 'NEED_INFO') {
                         return response()->json(['reply' => $decoded['message']]);
                     }
 
-                    // Need more info
-                    if ($operation === 'NEED_INFO') {
-                        return response()->json(['reply' => $decoded['message']]);
-                    }
-
-                    // CREATE — execute immediately
                     if ($operation === 'CREATE') {
                         $entry = $crud->create($decoded['title'], $decoded['content']);
                         return response()->json([
@@ -83,7 +107,6 @@ class ChatBotController extends Controller
                         ]);
                     }
 
-                    // UPDATE — ask for confirmation
                     if ($operation === 'UPDATE') {
                         $msg = "⚠️ Are you sure you want to update entry #{$decoded['id']}?";
                         if (isset($decoded['title'])) $msg .= "\n**New title:** {$decoded['title']}";
@@ -96,7 +119,6 @@ class ChatBotController extends Controller
                         ]);
                     }
 
-                    // DELETE — ask for confirmation
                     if ($operation === 'DELETE') {
                         return response()->json([
                             'reply' => "⚠️ Are you sure you want to delete entry #{$decoded['id']}? This cannot be undone.\n\nReply **yes** to confirm or **no** to cancel.",
@@ -106,13 +128,10 @@ class ChatBotController extends Controller
                 }
             }
 
-            // Fallback — return raw response
             return response()->json(['reply' => $response]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['reply' => '❌ Entry not found. Please check the ID and try again.']);
-        } catch (\Gemini\Exceptions\ErrorException $e) {
-            return response()->json(['reply' => 'Rate limit reached, please wait a moment and try again.']);
+            return response()->json(['reply' => '❌ Entry not found.']);
         } catch (\Exception $e) {
             return response()->json(['reply' => 'Error: ' . $e->getMessage()]);
         }
@@ -127,6 +146,7 @@ class ChatBotController extends Controller
                 'title' => $operation['title'] ?? null,
                 'content' => $operation['content'] ?? null,
             ]);
+
             return response()->json([
                 'reply' => "✅ Updated entry #{$entry->id}!\n\n**Title:** {$entry->title}\n**Content:** {$entry->content}",
                 'reload' => true
@@ -135,6 +155,7 @@ class ChatBotController extends Controller
 
         if ($op === 'DELETE') {
             $title = $crud->delete($operation['id']);
+
             return response()->json([
                 'reply' => "🗑️ Deleted entry: **{$title}**",
                 'reload' => true
